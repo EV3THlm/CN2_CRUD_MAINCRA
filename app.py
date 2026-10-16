@@ -1,7 +1,6 @@
 import os
 from flask import Flask, request, jsonify, render_template, redirect, url_for
 from flask_sqlalchemy import SQLAlchemy
-
 from dotenv import load_dotenv
 
 # Cargar las variables de entorno
@@ -34,6 +33,18 @@ class Post(db.Model):
     category = db.relationship('Category', backref=db.backref('posts', lazy=True))
 
 
+# =========================================================================
+# SOLUCIÓN: Creación automática de tablas al arrancar la aplicación
+# =========================================================================
+with app.app_context():
+    print("Verificando y creando tablas en la base de datos...")
+    db.create_all()
+    print("Tablas listas para usarse.")
+
+
+# =========================================================================
+
+
 # Ruta para ver todos los posts
 @app.route('/')
 def index():
@@ -60,8 +71,7 @@ def add_post():
     return render_template('create_post.html', categories=categories)
 
 
-
-#Eliminar post
+# Eliminar post
 @app.route('/posts/delete/<int:id>')
 def delete_post(id):
     post = Post.query.get(id)
@@ -70,8 +80,9 @@ def delete_post(id):
         db.session.commit()
     return redirect(url_for('index'))
 
-#Actualizar post
-@app.route('/post/update/<int:id>', methods=['GET','POST'])
+
+# Actualizar post
+@app.route('/post/update/<int:id>', methods=['GET', 'POST'])
 def update_post(id):
     post = Post.query.get(id)
     if request.method == 'POST':
@@ -80,9 +91,10 @@ def update_post(id):
         post.content = request.form['content']
         db.session.commit()
         return redirect(url_for('index'))
-    
+
     categories = Category.query.all()
     return render_template('update_post.html', post=post, categories=categories)
+
 
 if __name__ == '__main__':
     app.run(debug=True)
